@@ -4,9 +4,9 @@
     {
         Task AddAsync(Country country, CancellationToken cancellationToken = default);
 
-        Task<Country> FindByIdAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<Country?> FindByIdAsync(Guid id, CancellationToken cancellationToken = default);
         
-        Task<Country> FindByNameAsync(string name, CancellationToken cancellationToken = default);
+        Task<Country?> FindByNameAsync(string name, CancellationToken cancellationToken = default);
 
         Task<IEnumerable<Country>> GetAllAsync(CancellationToken cancellationToken = default);
 
@@ -15,6 +15,8 @@
 
     public interface ICityRepository
     {
-        Task<PageResult<Country>> GetAllAsync(Guid countryId, PageRequest pageRequest, CancellationToken cancellationToken = default);
+        Task AddAsync(City city, CancellationToken cancellationToken = default);
+
+        Task<PageResult<City>> GetAllAsync(Guid countryId, PageRequest pageRequest, CancellationToken cancellationToken = default);
     }
 }

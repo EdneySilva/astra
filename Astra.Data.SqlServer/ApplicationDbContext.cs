@@ -1,6 +1,4 @@
-﻿using Astra.Domain;
-using Astra.Domain.Abstractions.Data;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace Astra.Data.SqlServer
 {
@@ -19,36 +17,4 @@ namespace Astra.Data.SqlServer
         }
     }
 
-}
-
-namespace Astra.Data.Repository
-{
-
-    public class CountryRepository : ICountryRepository
-    {
-        public Task AddAsync(Country country, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task DeleteAsync(Country country, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Country> FindByIdAsync(Guid id, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Country> FindByNameAsync(string name, CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<Country>> GetAllAsync(CancellationToken cancellationToken = default)
-        {
-            throw new NotImplementedException();
-        }
-    }
 }
