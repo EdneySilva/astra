@@ -1,0 +1,12 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/Astra.Api/obj
+/Astra.Data.SqlServer/obj
+/Astra.Domain/obj
+/Astra.Domain.Tests/obj
+/Astra.Manager/obj
+/Astra.Manager.Tests/obj
+/Astra.Manager.Tests/bin/Debug/net8.0
