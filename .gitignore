@@ -10,3 +10,10 @@
 /Astra.Manager/obj
 /Astra.Manager.Tests/obj
 /Astra.Manager.Tests/bin/Debug/net8.0
+/Astra.Api/bin/Debug/net8.0
+/Astra.Data.GraphQl/bin/Debug/net8.0
+/Astra.Data.GraphQl/obj
+/Astra.Data.SqlServer/bin/Debug/net8.0
+/Astra.Domain/bin/Debug/net8.0
+/Astra.Domain.Tests/bin/Debug/net8.0
+/Astra.Manager/bin/Debug/net8.0
