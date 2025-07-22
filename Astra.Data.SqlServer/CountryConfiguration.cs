@@ -9,9 +9,14 @@ namespace Astra.Data.SqlServer
         public void Configure(EntityTypeBuilder<Country> builder)
         {
             builder.ToTable("Country");
-            builder.HasKey(k => k.Id);
-            builder.Property(p => p.Name).IsRequired();
-            builder.HasMany(fk => fk.Cities).WithOne().HasPrincipalKey(c => c.Id);
+            builder.HasKey(c => c.Id);
+            builder.Property(c => c.Name).IsRequired();
+            builder.Property(c => c.Code).IsRequired();
+            builder.Property(c => c.Deleted).IsRequired();
+            builder
+                .HasMany(c => c.Cities)
+                .WithOne(c => c.Country)
+                .HasForeignKey("CountryId");
         }
     }
 }

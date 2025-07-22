@@ -7,10 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="HotChocolate.AspNetCore" Version="15.1.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.18" />
+    <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="9.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.18" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Astra.Data.GraphQl\Astra.Data.GraphQl.csproj" />
+    <ProjectReference Include="..\Astra.Data.SqlServer\Astra.Data.SqlServer.csproj" />
     <ProjectReference Include="..\Astra.Domain\Astra.Domain.csproj" />
     <ProjectReference Include="..\Astra.Manager\Astra.Manager.csproj" />
   </ItemGroup>

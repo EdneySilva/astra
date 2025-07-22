@@ -16,5 +16,6 @@
         public static PageRequest First(int pageSize = 10)
         {
             return new PageRequest { Page = 1, PageSize = pageSize };
+        }
     }
 }

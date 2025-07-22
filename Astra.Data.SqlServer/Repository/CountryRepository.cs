@@ -1,6 +1,6 @@
-﻿using Astra.Data.SqlServer;
-using Astra.Domain;
+﻿using Astra.Domain;
 using Astra.Domain.Abstractions.Data;
+using Astra.Domain.Specifications;
 using Microsoft.EntityFrameworkCore;
 
 namespace Astra.Data.SqlServer.Repository
@@ -22,26 +22,34 @@ namespace Astra.Data.SqlServer.Repository
             await _context.SaveChangesAsync();
         }
 
+        public Task UpdateAsync(Country country, CancellationToken cancellationToken = default)
+        {
+            _countries.Update(country);
+            return _context.SaveChangesAsync();
+        }
+
         public async Task DeleteAsync(Country country, CancellationToken cancellationToken = default)
         {
             _countries.Remove(country);
             await _context.SaveChangesAsync();
         }
 
-        public async Task<Country?> FindByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<Country?> FindByIdAsync(int id, CancellationToken cancellationToken = default)
         {
             var entry = await _countries.FindAsync(id, cancellationToken);
             return entry;
         }
 
-        public Task<Country?> FindByNameAsync(string name, CancellationToken cancellationToken = default)
+        public Task<Country?> FindAsync(ISpecification<Country> specification, CancellationToken cancellationToken = default)
         {
-            return _countries.AsQueryable().FirstOrDefaultAsync(country => country.Name == name, cancellationToken);
+            return _countries.AsQueryable()                
+                .FirstOrDefaultAsync(specification.ToExpression(), cancellationToken);
         }
 
-        public Task<IEnumerable<Country>> GetAllAsync(CancellationToken cancellationToken = default)
+        public Task<IEnumerable<Country>> GetAllAsync(ISpecification<Country> specification, CancellationToken cancellationToken = default)
         {
-            return _countries.AsQueryable().ToListAsync(cancellationToken).ContinueWith(task =>
+            return _countries.AsQueryable().Where(specification.ToExpression())
+                .ToListAsync(cancellationToken).ContinueWith(task =>
             {
                 return task.Result.AsEnumerable();
             });

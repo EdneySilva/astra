@@ -1,5 +1,6 @@
 using Astra.Domain;
 using Astra.Domain.Abstractions.Data;
+using Astra.Domain.Specifications;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -17,7 +18,8 @@ namespace Astra.Manager.Tests.CountryManager
             _countryRepository = new Mock<ICountryRepository>();
             var _logger = new Mock<ILogger<Manager.CountryManager>>();
             var _cityRepository = new Mock<ICityRepository>();
-            countryManager = new Manager.CountryManager(_logger.Object, _countryRepository.Object, null);
+            var _cityManager = new Mock<CityManager>();
+            countryManager = new Manager.CountryManager(_logger.Object, _countryRepository.Object, _cityRepository.Object, _cityManager.Object);
         }
 
         [Fact]
@@ -29,7 +31,7 @@ namespace Astra.Manager.Tests.CountryManager
             };
             var result = await countryManager.AddCountryAsync(country);
 
-            _countryRepository.Verify(a => a.FindByNameAsync(It.Is<string>(c => c == country.Name), It.IsAny<CancellationToken>()), Times.Once());
+            _countryRepository.Verify(a => a.FindAsync(It.IsAny<ISpecification<Country>>(), It.IsAny<CancellationToken>()), Times.Once());
             _countryRepository.Verify(a => a.AddAsync(It.Is<Country>(c => c == country), It.IsAny<CancellationToken>()), Times.Once());
 
             result.Value.Should().NotBeNull();
@@ -45,12 +47,12 @@ namespace Astra.Manager.Tests.CountryManager
                 Name = "Brazil"
             };
 
-            _countryRepository.Setup(x => x.FindByNameAsync(It.Is<string>(c => c == country.Name), It.IsAny<CancellationToken>()))
+            _countryRepository.Setup(x => x.FindAsync(It.IsAny<ISpecification<Country>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(country);
 
             var result = await countryManager.AddCountryAsync(country);
 
-            _countryRepository.Verify(a => a.FindByNameAsync(It.Is<string>(c => c == country.Name), It.IsAny<CancellationToken>()), Times.Once());
+            _countryRepository.Verify(a => a.FindAsync(It.IsAny<ISpecification<Country>>(), It.IsAny<CancellationToken>()), Times.Once());
             _countryRepository.Verify(a => a.AddAsync(It.Is<Country>(c => c == country), It.IsAny<CancellationToken>()), Times.Never());
 
             result.Value.Should().BeNull();

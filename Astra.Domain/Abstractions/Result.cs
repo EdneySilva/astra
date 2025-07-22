@@ -41,7 +41,7 @@
         }
 
         public static Result<T> Success(T value) => new Result<T>(true, value, null);
-        public static Result<T> Failure(string error) => new Result<T>(true, default, null);
+        public static Result<T> Failure(string error) => new Result<T>(false, default, error);
 
         public Result<U> Map<U>(Func<T, U> func)
         {

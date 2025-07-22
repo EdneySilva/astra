@@ -1,16 +1,17 @@
+using Astra.Api.Requests.Country;
 using Astra.Domain;
-using Astra.Domain.Abstractions;
 using Astra.Manager;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Specialized;
+using Microsoft.AspNetCore.OutputCaching;
 using System.Net;
 
 namespace Astra.Api.Controllers
 {
-
     [ApiController]
     [Route("[controller]")]
+    [Authorize]
     public class CountriesController : ControllerBase
     {
         private readonly ILogger<CountriesController> _logger;
@@ -21,6 +22,7 @@ namespace Astra.Api.Controllers
         }
 
         [HttpGet(Name = "GetCountries")]
+        [OutputCache(Duration = 600, Tags = ["countries", "country"])]
         public async Task<ActionResult<IEnumerable<Country>>> Get([FromServices] CountryManager countryManager, CancellationToken cancellationToken)
         {
             var countries = await countryManager.GetAllAsync(cancellationToken);
@@ -30,10 +32,11 @@ namespace Astra.Api.Controllers
             }
             if (!countries.Value!.Any())
                 return NotFound(Enumerable.Empty<Country>());
-            return Ok(countries);
+            return Ok(countries.Value);
         }
 
         [HttpGet("{name}", Name = "GetCountryByName")]
+        [OutputCache(Duration = 600, Tags = ["country"], VaryByRouteValueNames = [ "name" ])]
         public async Task<ActionResult<IEnumerable<Country>>> Get([FromRoute] string name, [FromServices] CountryManager countryManager, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
@@ -50,10 +53,11 @@ namespace Astra.Api.Controllers
         }
 
         [HttpPost(Name = "CreateCountry")]
-        public async Task<ActionResult<Country>> Post([FromBody] Country country, [FromServices] CountryManager countryManager, CancellationToken cancellationToken)
+        public async Task<ActionResult<Country>> Post([FromBody] CreateCountryRequest request, [FromServices] CountryManager countryManager, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+            var country = request.Translate();
             if ((await countryManager.ExistsAsync(country, cancellationToken)).Value)
             {
                 ModelState.AddModelError("Exists", "CountryAlreadyExists");
@@ -69,7 +73,7 @@ namespace Astra.Api.Controllers
         }
 
         [HttpPatch("{id}", Name = "CountryPartialUpdate")]
-        public async Task<ActionResult<Country>> Patch([FromRoute] Guid id, [FromBody] JsonPatchDocument<Country> operations, [FromServices] CountryManager countryManager, CancellationToken cancellationToken)
+        public async Task<ActionResult<Country>> Patch([FromRoute] int id, [FromBody] JsonPatchDocument<Country> operations, [FromServices] CountryManager countryManager, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);

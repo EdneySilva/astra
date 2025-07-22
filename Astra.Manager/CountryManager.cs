@@ -2,177 +2,180 @@
 using Astra.Domain.Abstractions;
 using Astra.Domain.Abstractions.Data;
 using Microsoft.Extensions.Logging;
-using System.Linq.Expressions;
+using Astra.Manager.Data.Country;
+
 namespace Astra.Manager
 {
-    public interface IQueryContextProvider
-    {
-        PaginationContext GetCurrentContext();
-    }
-
-    public struct PaginationContext
-    {
-        public int Page { get; set; }
-
-        public int PageSize { get; set; }
-
-    }
-
     public class CountryManager
     {
         private readonly ILogger<CountryManager> _logger;
         private ICountryRepository _countryRespository;
-        private readonly IQueryContextProvider _paginationContextProvider;
         private ICityRepository _cityRepository;
+        private readonly CityManager _cityManager;
 
-        public CountryManager(ILogger<CountryManager> logger, ICountryRepository repository, ICityRepository cityRepository, IQueryContextProvider paginationContextProvider)
+        public CountryManager(ILogger<CountryManager> logger, ICountryRepository repository, ICityRepository cityRepository, CityManager cityManager)
         {
             _logger = logger;
             _countryRespository = repository;
             _cityRepository = cityRepository;
-            _paginationContextProvider = paginationContextProvider;
+            _cityManager = cityManager;
         }
 
-        public async Task<Result<bool>> ExistsAsync(Guid id, CancellationToken cancellationToken)
+        public async Task<Result<bool>> ExistsAsync(int id, CancellationToken cancellationToken)
         {
-            _logger.LogTrace("Starting ExistsAsync({@country})", id);
+            _logger.LogDebug("Checking if country exists (Id: {CountryId})", id);
             var result = await _countryRespository.FindByIdAsync(id, cancellationToken);
-            var exist = result is not null;
-            _logger.LogTrace("ExistsAsync completed with result: {result}", exist);
-            if (result is not null)
-                return Result<bool>.Success(true);
-            return Result<bool>.Success(false);
+            return Result<bool>.Success(result is not null);
         }
-        
+
         public async Task<Result<bool>> ExistsAsync(Country country, CancellationToken cancellationToken)
         {
-            _logger.LogTrace("Starting ExistsAsync({@country})", country);
-            var result = await _countryRespository.FindByNameAsync(country.Name, cancellationToken);
-            var exist = result is not null;
-            _logger.LogTrace("ExistsAsync completed with result: {result}", exist);
-            if (result is not null)
-                return Result<bool>.Success(true);
-            return Result<bool>.Success(false);
+            _logger.LogDebug("Checking if country exists (Name: {Name})", country.Name);
+            var result = await _countryRespository.FindAsync(CountryQueries.WithName(country.Name), cancellationToken);
+            return Result<bool>.Success(result is not null);
         }
 
         public async Task<Result<Country>> AddCountryAsync(Country country, CancellationToken cancellationToken = default)
         {
-            _logger.LogTrace("Starting AddCountryAsync({@country})", country);
-            if (string.IsNullOrEmpty(country.Name))
-            {
-                _logger.LogDebug("Validation failed: NameIsRequired");
+            _logger.LogDebug("Adding new country: {Name}", country.Name);
+
+            if (string.IsNullOrWhiteSpace(country.Name))
                 return Result<Country>.Failure("NameIsRequired");
-            }
 
-            var existingCountry = await this._countryRespository.FindByNameAsync(country.Name, cancellationToken);
-            if (existingCountry is not null)
-            {
-                _logger.LogDebug("CountryNameConflict {name}", country.Name);
+            if (string.IsNullOrWhiteSpace(country.Code))
+                return Result<Country>.Failure("CodeIsRequired");
+
+            var existing = await _countryRespository.FindAsync(CountryQueries.WithName(country.Name), cancellationToken);
+            if (existing is not null)
                 return Result<Country>.Failure("CountryNameConflict");
-            }
-            country.Id = Guid.NewGuid();
-            await this._countryRespository.AddAsync(country, cancellationToken);
-            _logger.LogDebug("CountryAdded {name} with Id {id}", country.Name, country.Id);
-            _logger.LogTrace("Result AddCountryAsync {@country}", country);
-            return Result<Country>.Success(country);
-        }
 
-        public async Task<Result<PageResult<City>>> FindCitiesAsync(Guid countryId, CancellationToken cancellationToken = default)
-        {
-            var pagination = _paginationContextProvider.GetCurrentContext();
-            var result = await _cityRepository.GetAllAsync(countryId, PageRequest.First(), cancellationToken);
-            return result;
+            await _countryRespository.AddAsync(country, cancellationToken);
+            _logger.LogInformation("Country added: {Name} (Id: {Id})", country.Name, country.Id);
+            return Result<Country>.Success(country);
         }
 
         public async Task<Result<IEnumerable<Country>>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            _logger.LogTrace("Starting GetAllAsync()");
-            var data = (await _countryRespository.GetAllAsync(cancellationToken).ConfigureAwait(false)).ToList();
-            _logger.LogDebug("Found {@count} countries", data.Count);
-            _logger.LogTrace("GetAllAsync completed");
-            return Result<IEnumerable<Country>>.Success(data);
-        }
-        
-        public async Task<Result<IEnumerable<Country>>> GetCitiesFromCountryAsync(Guid countryId, CancellationToken cancellationToken = default)
-        {
-            _logger.LogTrace("Starting GetCitiesFromCountryAsync({id})", countryId);
-            var data = (await _countryRespository.GetAllAsync(cancellationToken).ConfigureAwait(false)).ToList();
-            _logger.LogDebug("Found {@count} cities", data.Count);
-            _logger.LogTrace("GetCitiesFromCountryAsync completed");
+            var data = (await _countryRespository.GetAllAsync(CountryQueries.All(), cancellationToken)).ToList();
+            _logger.LogInformation("Retrieved {Count} countries", data.Count);
             return Result<IEnumerable<Country>>.Success(data);
         }
 
-        public async Task<Result<Country?>> FindByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        public async Task<Result<Country?>> FindByIdAsync(int id, CancellationToken cancellationToken = default)
         {
-            _logger.LogTrace("Starting FindByIdAsync({@name})", id);
-            _logger.LogDebug("Finding country by name {id} ", id);
-            var data = await _countryRespository.FindByIdAsync(id, cancellationToken).ConfigureAwait(false);
+            _logger.LogDebug("Finding country by ID: {Id}", id);
+            var data = await _countryRespository.FindByIdAsync(id, cancellationToken);
             if (data == null)
-                _logger.LogInformation("Country not found by name {id}", id);
-            _logger.LogInformation("Found {country}", data);
-            _logger.LogTrace("FindByNameAsync completed");
+                _logger.LogWarning("Country not found (Id: {Id})", id);
+            else
+                _logger.LogInformation("Country found: {Name}", data.Name);
+
             return Result<Country?>.Success(data);
         }
-        
+
         public async Task<Result<Country?>> FindByNameAsync(string name, CancellationToken cancellationToken = default)
         {
-            _logger.LogTrace("Starting FindByNameAsync({@name})", name);
-            if (string.IsNullOrEmpty(name))
+            if (string.IsNullOrWhiteSpace(name))
             {
-                _logger.LogWarning("ArgumentNull(name)");
+                _logger.LogWarning("Invalid country name provided");
                 return Result<Country?>.Failure("InvalidName");
             }
 
-            _logger.LogDebug("Finding country by name {name} ", name);
-            var data = await _countryRespository.FindByNameAsync(name, cancellationToken).ConfigureAwait(false);
+            _logger.LogDebug("Finding country by name: {Name}", name);
+            var data = await _countryRespository.FindAsync(CountryQueries.WithName(name), cancellationToken);
             if (data == null)
-                _logger.LogInformation("Country not found by name {name}", name);
-            _logger.LogInformation("Found {country}", data);
-            _logger.LogTrace("FindByNameAsync completed");
+                _logger.LogWarning("Country not found (Name: {Name})", name);
+            else
+                _logger.LogInformation("Country found: {Name}", data.Name);
+
             return Result<Country?>.Success(data);
         }
 
         public async Task<Result<Country>> UpdateCountryAsync(Country country, CancellationToken cancellationToken = default)
         {
-            _logger.LogTrace("Starting DeleteCountryAsync({@country})", country);
-            if (string.IsNullOrEmpty(country.Name))
-            {
-                _logger.LogDebug("Validation failed: NameIsRequired");
-                return Result<Country>.Failure("NameIsRequired");
-            }
+            _logger.LogDebug("Updating country: {Name}", country.Name);
 
-            var existingCountry = await this._countryRespository.FindByNameAsync(country.Name, cancellationToken);
-            if (existingCountry is null)
-            {
-                _logger.LogDebug("CountryNotFound {name}", country.Name);
+            if (string.IsNullOrWhiteSpace(country.Name))
+                return Result<Country>.Failure("NameIsRequired");
+
+            var existing = await _countryRespository.FindAsync(CountryQueries.WithName(country.Name), cancellationToken);
+            if (existing is null)
                 return Result<Country>.Failure("CountryNotFound");
-            }
-            await this._countryRespository.DeleteAsync(country, cancellationToken);
-            _logger.LogDebug("CountryDeleted {name}", country.Name);
-            _logger.LogTrace("Result DeleteCountryAsync {@country}", country);
+
+            await _countryRespository.UpdateAsync(country, cancellationToken);
+            _logger.LogInformation("Country updated: {Name}", country.Name);
             return Result<Country>.Success(country);
         }
-        
+
         public async Task<Result<Country>> DeleteCountryAsync(Country country, CancellationToken cancellationToken = default)
         {
-            _logger.LogTrace("Starting DeleteCountryAsync({@country})", country);
-            if (string.IsNullOrEmpty(country.Name))
-            {
-                _logger.LogDebug("Validation failed: NameIsRequired");
-                return Result<Country>.Failure("NameIsRequired");
-            }
+            _logger.LogDebug("Deleting country: {Name}", country.Name);
 
-            var existingCountry = await this._countryRespository.FindByNameAsync(country.Name, cancellationToken);
-            if (existingCountry is null)
-            {
-                _logger.LogDebug("CountryNotFound {name}", country.Name);
+            if (string.IsNullOrWhiteSpace(country.Name))
+                return Result<Country>.Failure("NameIsRequired");
+
+            var existing = await _countryRespository.FindAsync(CountryQueries.WithName(country.Name), cancellationToken);
+            if (existing is null)
                 return Result<Country>.Failure("CountryNotFound");
-            }
-            await this._countryRespository.DeleteAsync(country, cancellationToken);
-            _logger.LogDebug("CountryDeleted {name}", country.Name);
-            _logger.LogTrace("Result DeleteCountryAsync {@country}", country);
+
+            await _countryRespository.DeleteAsync(country, cancellationToken);
+            _logger.LogInformation("Country deleted: {Name}", country.Name);
             return Result<Country>.Success(country);
         }
 
+        public async Task<Result<City>> AddCityAsync(int countryId, City city, CancellationToken cancellationToken = default)
+        {
+            _logger.LogDebug("Adding city '{CityName}' to country {CountryId}", city.Name, countryId);
+            return await DoIfCountryExists(countryId, (context, country, param, token) =>
+            {
+                city.Country = country;
+                return context._cityManager.AddCityAsync(countryId, city, token);
+            }, city, cancellationToken);
+        }
+
+        public async Task<Result<City?>> RemoveCityAsync(int countryId, City city, CancellationToken cancellationToken = default)
+        {
+            _logger.LogDebug("Removing city '{CityName}' from country {CountryId}", city.Name, countryId);
+            return await DoIfCountryExists(countryId, (context, country, param, token) =>
+            {
+                city.Country = country;
+                return context._cityManager.RemoveCityAsync(countryId, city, token);
+            }, city, cancellationToken);
+        }
+
+        public async Task<Result<bool>> CountryContainsCityAsync(int countryId, City city, CancellationToken cancellationToken = default)
+        {
+            return await DoIfCountryExists(countryId, (context, country, param, token) =>
+            {
+                return context._cityManager.CountryContainsCityAsync(country.Id, city, token);
+            }, city, cancellationToken);
+        }
+
+        public async Task<Result<City?>> FindCityByIdAsync(int countryId, int cityId, CancellationToken cancellationToken = default)
+        {
+            return await DoIfCountryExists(countryId, (context, country, param, token) =>
+            {
+                return context._cityManager.FindCityByIdAsync(country.Id, cityId, token);
+            }, cityId, cancellationToken);
+        }
+
+        public async Task<Result<PageResult<City>>> GetCitiesFromCountryAsync(int countryId, CancellationToken cancellationToken = default)
+        {
+            return await DoIfCountryExists(countryId, (context, country, param, token) =>
+            {
+                return context._cityManager.GetCitiesFromCountryAsync(country.Id, token);
+            }, countryId, cancellationToken);
+        }
+
+        private async Task<Result<T>> DoIfCountryExists<T, TP>(int countryId, Func<CountryManager, Country, TP, CancellationToken, Task<Result<T>>> operation, TP parameter, CancellationToken cancellationToken = default)
+        {
+            var country = await FindByIdAsync(countryId, cancellationToken);
+            if (country.Value is null)
+            {
+                _logger.LogDebug("Validation failed: CountryNotFound");
+                return Result<T>.Failure("CountryNotFound");
+            }
+            return await operation(this, country.Value, parameter, cancellationToken);
+        }
     }
 }
