@@ -6,18 +6,16 @@ using Astra.Manager.Data.Country;
 
 namespace Astra.Manager
 {
-    public class CountryManager
+    public class CountryManager : ICountryManager
     {
         private readonly ILogger<CountryManager> _logger;
         private ICountryRepository _countryRespository;
-        private ICityRepository _cityRepository;
-        private readonly CityManager _cityManager;
+        private readonly ICityManager _cityManager;
 
-        public CountryManager(ILogger<CountryManager> logger, ICountryRepository repository, ICityRepository cityRepository, CityManager cityManager)
+        public CountryManager(ILogger<CountryManager> logger, ICountryRepository repository, ICityManager cityManager)
         {
             _logger = logger;
             _countryRespository = repository;
-            _cityRepository = cityRepository;
             _cityManager = cityManager;
         }
 
@@ -73,7 +71,7 @@ namespace Astra.Manager
             return Result<Country?>.Success(data);
         }
 
-        public async Task<Result<Country?>> FindByNameAsync(string name, CancellationToken cancellationToken = default)
+        public async Task<Result<Country?>> FindByNameAsync(string? name, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(name))
             {

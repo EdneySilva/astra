@@ -6,7 +6,7 @@ using Astra.Manager.Data.City;
 
 namespace Astra.Manager
 {
-    public class CityManager
+    public class CityManager : ICityManager
     {
         private readonly ICityRepository _cityRepository;
         private readonly ILogger<CityManager> _logger;
@@ -41,7 +41,7 @@ namespace Astra.Manager
             if (result.IsFailure)
                 return result;
 
-            await _cityRepository.DeleteCity(result.Value, cancellationToken);
+            await _cityRepository.DeleteCity(result.Value!, cancellationToken);
             _logger.LogInformation("City removed: {Name}/{Province}", city.Name, city.Province);
             return Result<City?>.Success(city);
         }

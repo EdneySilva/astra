@@ -3,7 +3,6 @@ using System.Linq.Expressions;
 
 namespace Astra.Manager.Data.Country
 {
-
     internal class CountryQueries : ISpecification<Domain.Country>
     {
         Expression<Func<Domain.Country, bool>> _expression;
@@ -13,7 +12,7 @@ namespace Astra.Manager.Data.Country
             _expression = expression;
         }
 
-        public static ISpecification<Domain.Country> WithName(string name)
+        public static ISpecification<Domain.Country> WithName(string? name)
         {
             return new CountryQueries(f => f.Name == name);
         }
