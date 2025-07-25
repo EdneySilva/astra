@@ -26,8 +26,8 @@ namespace Astra.Api
                     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
                     options.JsonSerializerOptions.WriteIndented = true;
                 }).AddNewtonsoftJson();
-            builder.Services.AddScoped<Manager.CountryManager>();
-            builder.Services.AddScoped<Manager.CityManager>();
+            builder.Services.AddScoped<Manager.ICountryManager, Manager.CountryManager>();
+            builder.Services.AddScoped<Manager.ICityManager, Manager.CityManager>();
             builder.Services.AddSqlServerRepositories((config, options) =>
             {
                 var connection = config.GetConnectionString("DefaultConnection");

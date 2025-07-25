@@ -14,11 +14,18 @@ namespace Astra.Api.Controllers
     [Authorize]
     public class CitiesController : ControllerBase
     {
+        private readonly ICountryManager _countryManager;
+
+        public CitiesController(ICountryManager countryManager)
+        {
+            _countryManager = countryManager;    
+        }
+
         [HttpGet(Name = "GetCities")]
         [OutputCache(Duration = 600, Tags = ["country", "city"])]
-        public async Task<ActionResult<IEnumerable<City>>> Get([FromRoute] int countryId, [FromServices] IQueryable<Country> queryable, [FromServices] CountryManager countryManager, CancellationToken cancellationToken)
+        public async Task<ActionResult<IEnumerable<City>>> Get([FromRoute] int countryId, CancellationToken cancellationToken)
         {
-            var cities = await countryManager.GetCitiesFromCountryAsync(countryId, cancellationToken);
+            var cities = await _countryManager.GetCitiesFromCountryAsync(countryId, cancellationToken);
             if (cities.IsFailure)
             {
                 ModelState.AddModelError("GetCitiesFromCountry", "CitiesNotFound");
@@ -29,15 +36,15 @@ namespace Astra.Api.Controllers
 
         [HttpGet("{id}", Name = "GetCityById")]
         [OutputCache(Duration = 600, Tags = ["country", "city"])]
-        public async Task<ActionResult<IEnumerable<City>>> GetById([FromRoute] int countryId, [FromRoute] int id, [FromServices] CountryManager countryManager, CancellationToken cancellationToken)
+        public async Task<ActionResult<IEnumerable<City>>> GetById([FromRoute] int countryId, [FromRoute] int id, CancellationToken cancellationToken)
         {
-            if (!(await countryManager.ExistsAsync(countryId, cancellationToken)).Value)
+            if (!(await _countryManager.ExistsAsync(countryId, cancellationToken)).Value)
             {
                 ModelState.AddModelError("CountryExists", "CountryNotFound");
                 return NotFound(ModelState);
             }
 
-            var cities = await countryManager.FindCityByIdAsync(countryId, id, cancellationToken);
+            var cities = await _countryManager.FindCityByIdAsync(countryId, id, cancellationToken);
             if(cities.IsFailure)
             {
                 ModelState.AddModelError("FindCityByIdAsync", "CitiesNotFound");
@@ -47,12 +54,12 @@ namespace Astra.Api.Controllers
         }
 
         [HttpPost(Name = "CreateCity")]
-        public async Task<ActionResult<City>> Post([FromRoute] int countryId, [FromBody] CreateCityRequest request, [FromServices] CountryManager countryManager, CancellationToken cancellationToken)
+        public async Task<ActionResult<City>> Post([FromRoute] int countryId, [FromBody] CreateCityRequest request, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
             var city = request.Translate();
-            var result = (await countryManager.CountryContainsCityAsync(countryId, city, cancellationToken));
+            var result = (await _countryManager.CountryContainsCityAsync(countryId, city, cancellationToken));
             if(result.IsFailure)
             {
                 ModelState.AddModelError("CountryContainsCity", result.Error!);
@@ -65,7 +72,7 @@ namespace Astra.Api.Controllers
                 ModelState.AddModelError("CountryContainsCity", "CountryContainsCity");
                 return Conflict(ModelState);
             }
-            var addCityResult = await countryManager.AddCityAsync(countryId, city, cancellationToken);
+            var addCityResult = await _countryManager.AddCityAsync(countryId, city, cancellationToken);
             if (addCityResult.IsFailure)
             {
                 ModelState.AddModelError("AddCity", addCityResult.Error!);
@@ -77,12 +84,12 @@ namespace Astra.Api.Controllers
         }
 
         [HttpDelete("{id}", Name = "Delete")]
-        public async Task<ActionResult<City>> Delete([FromRoute] int countryId, [FromRoute] int id, [FromServices] CountryManager countryManager, CancellationToken cancellationToken)
+        public async Task<ActionResult<City>> Delete([FromRoute] int countryId, [FromRoute] int id, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var addCityResult = await countryManager.RemoveCityAsync(countryId, City.Initialize(id), cancellationToken);
+            var addCityResult = await _countryManager.RemoveCityAsync(countryId, City.Initialize(id), cancellationToken);
             if (addCityResult.IsFailure)
             {
                 ModelState.AddModelError("AddCity", addCityResult.Error!);
