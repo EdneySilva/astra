@@ -57,7 +57,7 @@ namespace Astra.Api.Middlewares
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 lock(_lock)
                 {
