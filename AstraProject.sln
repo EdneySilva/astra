@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Astra.Api", "Astra.Api\Astr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Astra.Domain", "Astra.Domain\Astra.Domain.csproj", "{36BB4A1F-1B7C-455E-A65A-DC91EC9399BC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Astra.Domain.Tests", "Astra.Domain.Tests\Astra.Domain.Tests.csproj", "{4168003C-7EED-4C8C-8013-C72D7D8BA06D}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Astra.Manager", "Astra.Manager\Astra.Manager.csproj", "{32329605-54CA-4820-BB3D-A1A44FB60E06}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Astra.Manager.Tests", "Astra.Manager.Tests\Astra.Manager.Tests.csproj", "{892A3A58-2CFB-46B8-9914-C1C4A8A85003}"
@@ -31,10 +29,6 @@ Global
 		{36BB4A1F-1B7C-455E-A65A-DC91EC9399BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{36BB4A1F-1B7C-455E-A65A-DC91EC9399BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{36BB4A1F-1B7C-455E-A65A-DC91EC9399BC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4168003C-7EED-4C8C-8013-C72D7D8BA06D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4168003C-7EED-4C8C-8013-C72D7D8BA06D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4168003C-7EED-4C8C-8013-C72D7D8BA06D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4168003C-7EED-4C8C-8013-C72D7D8BA06D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{32329605-54CA-4820-BB3D-A1A44FB60E06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{32329605-54CA-4820-BB3D-A1A44FB60E06}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{32329605-54CA-4820-BB3D-A1A44FB60E06}.Release|Any CPU.ActiveCfg = Release|Any CPU
