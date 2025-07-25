@@ -17,3 +17,6 @@
 /Astra.Domain/bin/Debug/net8.0
 /Astra.Domain.Tests/bin/Debug/net8.0
 /Astra.Manager/bin/Debug/net8.0
+/Astra.Api.Tests/bin/Debug/net8.0
+/Astra.Api.Tests/obj/Debug/net8.0
+/Astra.Api.Tests/obj
