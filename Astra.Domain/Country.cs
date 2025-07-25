@@ -5,8 +5,6 @@ namespace Astra.Domain
 {
     public class Country : DomainObject
     {
-        private ICityRepository CitiesRepository { get; set; }
-
         public Country()
         {
 
@@ -19,15 +17,10 @@ namespace Astra.Domain
             this.AddEvent(new CountryAdded(this));
         }
 
-        private Country(ICityRepository citiesRepository) : this()
-        {
-            CitiesRepository = citiesRepository;
-        }
-
         public int Id { get; set; }
-        public string Code { get; set; }
-        public string Name { get; set; }
+        public string? Code { get; set; }
+        public string? Name { get; set; }
         public bool Deleted { get; set; }
-        public ICollection<City> Cities { get; set; }
+        public ICollection<City> Cities { get; set; } = new List<City>();
     }
 }
