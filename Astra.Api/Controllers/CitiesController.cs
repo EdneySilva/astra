@@ -80,7 +80,20 @@ namespace Astra.Api.Controllers
             }
             var uri = new Uri(this.Request.GetDisplayUrl());
             var url = uri.Scheme + "://" + (uri.IsLoopback ? ($"localhost:{uri.Port}") : uri.DnsSafeHost);
-            return Created($"{uri}/countries/{addCityResult.Value!.Name}", addCityResult.Value);
+            return Created($"{url}/countries/{addCityResult.Value!.Name}", new City 
+            {
+                Name = addCityResult.Value.Name,
+                Id = addCityResult.Value.Id,
+                Deleted = addCityResult.Value.Deleted,
+                Province = addCityResult.Value.Province,
+                Country = new Country
+                {
+                    Name = addCityResult.Value.Country.Name,
+                    Deleted = addCityResult.Value.Country.Deleted,
+                    Id = addCityResult.Value.Country.Id,
+                    Code = addCityResult.Value.Country.Code
+                }
+            });
         }
 
         [HttpDelete("{id}", Name = "Delete")]
