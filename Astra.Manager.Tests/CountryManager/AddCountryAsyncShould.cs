@@ -17,9 +17,44 @@ namespace Astra.Manager.Tests.CountryManager
         {
             _countryRepository = new Mock<ICountryRepository>();
             var _logger = new Mock<ILogger<Manager.CountryManager>>();
-            var _cityRepository = new Mock<ICityRepository>();
-            var _cityManager = new Mock<CityManager>();
-            countryManager = new Manager.CountryManager(_logger.Object, _countryRepository.Object, _cityRepository.Object, _cityManager.Object);
+            var _cityManager = new Mock<ICityManager>();
+            countryManager = new Manager.CountryManager(_logger.Object, _countryRepository.Object, _cityManager.Object);
+        }
+
+        [Fact]
+        public async Task Returns_failure_when_name_is_not_provided()
+        {
+            var country = new Country
+            {
+                Code = "BRL"
+            };
+            var result = await countryManager.AddCountryAsync(country);
+
+            _countryRepository.Verify(a => a.FindAsync(It.IsAny<ISpecification<Country>>(), It.IsAny<CancellationToken>()), Times.Never());
+            _countryRepository.Verify(a => a.AddAsync(It.Is<Country>(c => c == country), It.IsAny<CancellationToken>()), Times.Never());
+
+            result.Value.Should().BeNull();
+            result.IsSuccess.Should().BeFalse();
+            result.IsFailure.Should().BeTrue();
+            result.Error.Should().Be("NameIsRequired");
+        }
+        
+        [Fact]
+        public async Task Returns_failure_when_code_is_not_provided()
+        {
+            var country = new Country
+            {
+                Name = "BRAZIL",
+            };
+            var result = await countryManager.AddCountryAsync(country);
+
+            _countryRepository.Verify(a => a.FindAsync(It.IsAny<ISpecification<Country>>(), It.IsAny<CancellationToken>()), Times.Never());
+            _countryRepository.Verify(a => a.AddAsync(It.Is<Country>(c => c == country), It.IsAny<CancellationToken>()), Times.Never());
+
+            result.Value.Should().BeNull();
+            result.IsSuccess.Should().BeFalse();
+            result.IsFailure.Should().BeTrue();
+            result.Error.Should().Be("CodeIsRequired");
         }
 
         [Fact]
@@ -27,7 +62,8 @@ namespace Astra.Manager.Tests.CountryManager
         {
             var country = new Country
             {
-                Name = "Brazil"
+                Name = "Brazil",
+                Code = "BRL"
             };
             var result = await countryManager.AddCountryAsync(country);
 
@@ -44,7 +80,8 @@ namespace Astra.Manager.Tests.CountryManager
         {
             var country = new Country
             {
-                Name = "Brazil"
+                Name = "Brazil",
+                Code = "BRL"
             };
 
             _countryRepository.Setup(x => x.FindAsync(It.IsAny<ISpecification<Country>>(), It.IsAny<CancellationToken>()))
